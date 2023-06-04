@@ -1,23 +1,12 @@
-//this is abt type assignment and type inference
-//this : number for n1 is the type assignment 
+//here, its abt object types
 
-function add(n1: number, n2: number, showResult: boolean, phrase: string){
-const result = n1+n2;
-if (showResult) {
-    console.log(phrase + result);
-} else {
-    return result;
-}
-}
+const person: { //this is the object type inferred by typescript
+    name : string; //we dont have key va;ue pairs, we have key-type pairs
+    age : number;
+} = {
+    //const person = { generally, this is the good practice i.e.; we wrtie objects in ts like the same as we write in js
+    name : 'Madmax',
+    age : 16
+};
 
-let number1 : number;
-number1 = 5;
-const number2 = 2.8;
-//type inference is something like, here, for example, it understands that number2 will
-// always be of type number in the end, because you initialize it with a number.
-
-const printResult = true;
-let resultPhrase = 'Result is : ';
-// resultPhrase = 0 <-- this one shows an error coz type zero is not assignable of type string.
-
-add(number1, number2, printResult, resultPhrase);
+console.log(person.name);
