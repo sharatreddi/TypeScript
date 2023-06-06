@@ -1,33 +1,36 @@
-//here, its abt object types
+//here, its abt enum types
 
-const person: { //this is the object type inferred by typescript
-    name : string; //we dont have key va;ue pairs, we have key-type pairs
-    age : number;
-    hobbies : string[]; // <---------- Array
-    role : [number, string] //  <---------- Tuple
-} = {
+// const person: { 
+//     name : string; 
+//     age : number;
+//     hobbies : string[]; 
+//     role : [number, string] 
+// } =
+
+// const ADMIN = 0;
+// const READ_ONLY = 1; //we do it like this in javascript
+// const AUTHOR = 2;
+
+//in typescript, we use enums, We create a enum with the enum keyword, we can name it Role,
+//convention is to start with the uppercase character because the enum also is a custom type.
+enum Role {Striker = 'Haaland', LeftWing = 'Ronaldo', RightWing = 'Messi'}
+// enum Role { ADMIN = 'ADMIN', READ_ONLY = 100, AUTHOR = 'AUTHOR' };
+//And behind the scenes striker receives the number zero, leftwing number one, rightwing number two.
+
+const person = {
     name : 'Madmax',
     age : 16,
-    //                                  Array 
     hobbies: ['Football', 'Training', 'Tech'], 
-    //                                  Tuple
-    role : [7, 'left wing']
+    role : Role.LeftWing
 };
 
-// --------------------------------------about arrays----------------------------
-// let favoriteActivities: any[];
-// favoriteActivities = ['football', 7] we can actlly insert any kind of values
 console.log(person.name);
 for (const hobby of person.hobbies) {
     console.log(hobby.toUpperCase());
-    // console.log(hobby.map()); // !!! ERROR !!!
   }
-
-// --------------------------------------about tuples----------------------------
- //in tuples, we can define anything in them 
- // person.role.push('admin'); <---- this works, unfortunately, typescript cant identify these push errors
-// person.role[1] = 10; <------ this does not work as the 1st element in the tuples is string
-
-// person.role = [0, 'admin', 'user']; <----- this wont work either, as we defined only for length 2 
-
+ 
 console.log(person.name);
+
+if (person.role === Role.LeftWing) {
+    console.log('Ronaldo starts');
+  }
