@@ -1,36 +1,24 @@
-//here, its abt enum types
+let userInput: unknown;
+//interesting thing about the unknown type is we can store any value in there without getting errors
+let userName: string;
 
-// const person: { 
-//     name : string; 
-//     age : number;
-//     hobbies : string[]; 
-//     role : [number, string] 
-// } =
+userInput = 5;
+userInput = 'Max';
 
-// const ADMIN = 0;
-// const READ_ONLY = 1; //we do it like this in javascript
-// const AUTHOR = 2;
+/*------------------------------------------- abt unknown type-------------------------------------------*/
+if (typeof userInput === 'string') { //Unknown is a bit more restrictive than any. With unknown, we have to first of all check
+// the type that's currently stored in userInput before we can assign it to
+//I need such a extra type check here with unknown to be able to assign a unknown value to a value with a fixed type
+//and therefore unknown is the better choice over any if you know I can't tell exactly what type of store in there,
+//it might be a number, it might be a string, but I know what I want to do with it eventually
+  userName = userInput;
+}
 
-//in typescript, we use enums, We create a enum with the enum keyword, we can name it Role,
-//convention is to start with the uppercase character because the enum also is a custom type.
-enum Role {Striker = 'Haaland', LeftWing = 'Ronaldo', RightWing = 'Messi'}
-// enum Role { ADMIN = 'ADMIN', READ_ONLY = 100, AUTHOR = 'AUTHOR' };
-//And behind the scenes striker receives the number zero, leftwing number one, rightwing number two.
 
-const person = {
-    name : 'Madmax',
-    age : 16,
-    hobbies: ['Football', 'Training', 'Tech'], 
-    role : Role.LeftWing
-};
+/**************surf more for never type, itz newly introduced*************/
+function generateError(message: string, code: number): never {
+  throw { message: message, errorCode: code };
+  // while (true) {}
+}
 
-console.log(person.name);
-for (const hobby of person.hobbies) {
-    console.log(hobby.toUpperCase());
-  }
- 
-console.log(person.name);
-
-if (person.role === Role.LeftWing) {
-    console.log('Ronaldo starts');
-  }
+generateError('An error occurred!', 500);
