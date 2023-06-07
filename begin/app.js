@@ -1,35 +1,19 @@
-//here, its abt enum types
-// const person: { 
-//     name : string; 
-//     age : number;
-//     hobbies : string[]; 
-//     role : [number, string] 
-// } =
-// const ADMIN = 0;
-// const READ_ONLY = 1; //we do it like this in javascript
-// const AUTHOR = 2;
-//in typescript, we use enums, We create a enum with the enum keyword, we can name it Role,
-//convention is to start with the uppercase character because the enum also is a custom type.
-var Role;
-(function (Role) {
-    Role["Striker"] = "Haaland";
-    Role["LeftWing"] = "Ronaldo";
-    Role["RightWing"] = "Messi";
-})(Role || (Role = {}));
-// enum Role { ADMIN = 'ADMIN', READ_ONLY = 100, AUTHOR = 'AUTHOR' };
-//And behind the scenes striker receives the number zero, leftwing number one, rightwing number two.
-var person = {
-    name: 'Madmax',
-    age: 16,
-    hobbies: ['Football', 'Training', 'Tech'],
-    role: Role.LeftWing
-};
-console.log(person.name);
-for (var _i = 0, _a = person.hobbies; _i < _a.length; _i++) {
-    var hobby = _a[_i];
-    console.log(hobby.toUpperCase());
+var userInput;
+//interesting thing about the unknown type is we can store any value in there without getting errors
+var userName;
+userInput = 5;
+userInput = 'Max';
+/*------------------------------------------- abt unknown type-------------------------------------------*/
+if (typeof userInput === 'string') { //Unknown is a bit more restrictive than any. With unknown, we have to first of all check
+    // the type that's currently stored in userInput before we can assign it to
+    //I need such a extra type check here with unknown to be able to assign a unknown value to a value with a fixed type
+    //and therefore unknown is the better choice over any if you know I can't tell exactly what type of store in there,
+    //it might be a number, it might be a string, but I know what I want to do with it eventually
+    userName = userInput;
 }
-console.log(person.name);
-if (person.role === Role.LeftWing) {
-    console.log('Ronaldo starts');
+/**************surf more for never type, itz newly introduced*************/
+function generateError(message, code) {
+    throw { message: message, errorCode: code };
+    // while (true) {}
 }
+generateError('An error occurred!', 500);
