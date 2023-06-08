@@ -1,6 +1,7 @@
-var userInput;
+"use strict";
+let userInput;
 //interesting thing about the unknown type is we can store any value in there without getting errors
-var userName;
+let userName;
 userInput = 5;
 userInput = 'Max';
 /*------------------------------------------- abt unknown type-------------------------------------------*/

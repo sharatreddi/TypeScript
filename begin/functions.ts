@@ -3,7 +3,7 @@ function add(n1: number, n2: number){
     return n1 + n2;
 }
 
-function printResult(num : number) : void{ //here, void is the function return type, it means, this function will not return any thing
+function printtheResult(num : number) : void{ //here, void is the function return type, it means, this function will not return any thing
     console.log('Result:' + num);
 }
 
@@ -24,7 +24,7 @@ function addAndHandle(n1: number, n2: number, cb: (num: number) => void) { //thi
 
 /********************************about callback functions***9*********************** */
 
-printResult(add(2, 17));
+printtheResult(add(2, 17));
 
 let combineValues: (a:number, b: number) => number; //we store a function here in combine values, generally it is of any type
 //so, we are defining a function in this way here 
