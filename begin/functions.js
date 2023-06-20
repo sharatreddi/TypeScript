@@ -3,7 +3,7 @@
 function add(n1, n2) {
     return n1 + n2;
 }
-function printResult(num) {
+function printtheResult(num) {
     console.log('Result:' + num);
 }
 /********************************about callback functions***9*********************** */
@@ -18,7 +18,7 @@ addAndHandle(10, 20, (result) => {
     console.log(result);
 });
 /********************************about callback functions***9*********************** */
-printResult(add(2, 17));
+printtheResult(add(2, 17));
 let combineValues; //we store a function here in combine values, generally it is of any type
 //so, we are defining a function in this way here 
 combineValues = add; //this works because add function relates with the conditions specified here for combinevalues
