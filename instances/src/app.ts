@@ -21,7 +21,7 @@ interface AddFn {
   }
   
   class Person implements Greetable { //a class follows an interface when we use implements 
-    name?: string; //these ? are optional parameters, that is, when u r not sure that u want them in ur skeleton or not
+    name?: string; //these ? are optional parameters, that is, when u r not sure that u want them in ur skeleton or not 
     age = 30;
   
     constructor(n?: string) {
