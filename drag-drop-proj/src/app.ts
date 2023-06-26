@@ -1,4 +1,5 @@
 // Code goes here!
+
 //autobind decorator
 function autobind(_: any, _2: string, Descriptor: PropertyDescriptor){ //This '_' actually is, a hint for typescript and javascript that you are aware that you are not going to use these values,
     // but you need to accept them because you need the argument they're after
@@ -40,14 +41,37 @@ class ProjectInput {
         this.attach();
     }
 
-    private attach(){ //this methodmeans that we insert "this.element" which is actlly the imported node adjacent to the hostelement (div)
+    private gatherInput():[string, string, number] | void{
+            const enteredTitle = this.titleInputElement.value;
+            const enteredDescription = this.descriptionInputElement.value;
+            const enteredPeople = this.peopleInputElement.value;
+
+            if(enteredTitle.trim().length===0||enteredDescription.trim().length===0||enteredPeople.trim().length===0){
+               alert('Invalid input, please try again' );  
+            }else{
+                return [enteredTitle ,enteredDescription, +enteredPeople]
+            }
+    }
+
+    private clearInputs(){
+        this.titleInputElement.value = '';
+        this.descriptionInputElement.value = '';
+        this.peopleInputElement.value = '';
+    }
+
+    private attach(){ //this method means that we insert "this.element" which is actlly the imported node adjacent to the hostelement (div)
         this.hostElement.insertAdjacentElement('afterbegin', this.element)
     }
     
     @autobind
     private submitHandler(event: Event){
         event.preventDefault();
-        console.log(this.titleInputElement.value);
+        const userInput = this.gatherInput(); //as there is no concept of tuples in javascript, we use array method
+        if(Array.isArray(userInput)){
+            const [title, desc, people] = userInput;
+            console.log(title, desc, people);
+        }
+        this.clearInputs();
     }
 
     private configure(){
@@ -58,6 +82,3 @@ class ProjectInput {
 
 
 const prjInput = new ProjectInput();
-
-
-//in the next commit, we'll turn this bind thing in the configure method, to decorators.
