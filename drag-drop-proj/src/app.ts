@@ -49,6 +49,41 @@ function autobind(_: any, _2: string, Descriptor: PropertyDescriptor){ //This '_
     return adjDescriptor;
 }
 
+// ProjectList Class
+class ProjectList {
+    templateElement: HTMLTemplateElement;
+    hostElement: HTMLDivElement;
+    element: HTMLElement;
+  
+    constructor(private type: 'active' | 'finished') {
+      this.templateElement = document.getElementById(
+        'project-list'
+      )! as HTMLTemplateElement;
+      this.hostElement = document.getElementById('app')! as HTMLDivElement;
+  
+      const importedNode = document.importNode(
+        this.templateElement.content,
+        true
+      );
+      this.element = importedNode.firstElementChild as HTMLElement;
+      this.element.id = `${this.type}-projects`;
+      this.attach();
+      this.renderContent();
+    }
+  
+    private renderContent() {
+      const listId = `${this.type}-projects-list`;
+      this.element.querySelector('ul')!.id = listId;
+      this.element.querySelector('h2')!.textContent =
+        this.type.toUpperCase() + ' PROJECTS';
+      
+    }
+  
+    private attach() {
+      this.hostElement.insertAdjacentElement('beforeend', this.element);
+    }
+  }
+
 //project class
 class ProjectInput {
     templateElement : HTMLTemplateElement;
@@ -136,6 +171,8 @@ class ProjectInput {
 }
 
 const prjInput = new ProjectInput();
+const activePrjList = new ProjectList('active');
+const finishedPrjList = new ProjectList('finished');
 
 //So, what's happening in here is, to sum up all the process, 
 /*1) First, We created a form and got access of the form elements in the constructor by using queryselectors and all
@@ -146,3 +183,6 @@ const prjInput = new ProjectInput();
      in gatherinput, we get access to the values of title, description, people inputs and kept some validation methods using function Validate which follows interface Validatable
      in gatherinput, we follow those validations and if all of them are true, then we print it in console
      it is printed by submithandler method which takes them as an array instead of tuple as we dont have them in javascript*/    
+/*3) Now, to deal with form class, we created(replicated ProjectInput class) a new class namely ProjectList, similar to before, we take the template which has id project-list
+     and use it, keeping the same host element, then we use rendercontent method inwhich we set the id values of lists depending on they are active list/ finished list
+     we also set the heading of it*/     
