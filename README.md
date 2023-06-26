@@ -5,3 +5,6 @@ In this branch, we be dealin wid a drag nd drop proj,
                                                                second commit
 - removed that bind thingy for configure and added it as a decorator
 - next commit is abt fetching the user-input
+                                                               third commit
+- done wid collecting the user input
+- next is abt adding the validation in form of decorator
