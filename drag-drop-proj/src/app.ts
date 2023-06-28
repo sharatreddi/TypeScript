@@ -128,7 +128,15 @@ enum ProjectStatus {
       this.element.id = `${this.type}-projects`;
   
       projectState.addListener((projects: Project[]) => {
-        this.assignedProjects = projects;
+        const relevantProjects = projects.filter(prj => { //here, we filter the projects on the basis of their type i.e.; active or finished by this function
+        if(this.type === 'active')
+            {
+                return prj.status === ProjectStatus.Active;
+            }
+                return prj.status === ProjectStatus.Finished;
+        });
+
+        this.assignedProjects = relevantProjects;
         this.renderProjects();
       });
   
@@ -140,6 +148,8 @@ enum ProjectStatus {
       const listEl = document.getElementById(
         `${this.type}-projects-list`
       )! as HTMLUListElement;
+      listEl.innerHTML = ''; //here, we simply take our list element and clear all its content by setting inner HTML to an empty string, 
+      //which means we get rid of all list items and then re render. That means that whenever we add a new project, we re render all projects
       for (const prjItem of this.assignedProjects) {
         const listItem = document.createElement('li');
         listItem.textContent = prjItem.title;
@@ -268,3 +278,6 @@ enum ProjectStatus {
    which also allows us to then set up listeners in the different parts of the app that are interested. we created a new class named projectState, then we create listeners, and addlistener method in it
    we also have an addProject method which adds inputs here, then in projectlist class, we created renderprojects and rendercontent method */
 /*5) here, we created a dedicated class for the project and then we added an extra feature namely project status and an enum for that and then replaced any[] types of projects array to their respective types*/
+/*6) Here, we first filter the projects that we add on the basis of their type i.e.; active/finished, for that, we use an inbuilt function called .filter(), 
+   we use this in the constructor of projectList class in the addlistener method, and then to resolve the issue of a single project title rendering again when we run it,we clear the content of it in renderprojects method
+   by making its innerhtml as null*/
