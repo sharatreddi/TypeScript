@@ -1,65 +1,124 @@
-// Code goes here!
-
-//validation interface
-interface Validatable {
-    value : string;
-    required? : boolean;
-    minLength? : number;
+// Project Type
+enum ProjectStatus {
+    Active,
+    Finished
+  }
+  
+  class Project {
+    constructor(
+      public id: string,
+      public title: string,
+      public description: string,
+      public people: number,
+      public status: ProjectStatus
+    ) {}
+  }
+  
+  // Project State Management
+  type Listener = (items: Project[]) => void;
+  
+  //class ProjectState
+  class ProjectState {
+    private listeners: Listener[] = [];//It's an array of function references. The idea is that whenever something changes, like here when we add a new project, we call all listener functions. 
+    //So we loop through all listeners, of this listener, so through all listener functions, and then since these are function references, we can execute this as a function. And to that function, we pass the thing that's relevant for it, based on the state we're managing,
+    //which is in this case, in this class of course, is our projects list. This is the state this class is responsible for.
+    private projects: Project[] = [];
+    private static instance: ProjectState;//this & priv constructor & getinstance below ensures that there'll be only one instance created of this class 
+    // i.e.; singleton class
+  
+    private constructor() {}
+  
+    static getInstance() {
+      if (this.instance) {
+        return this.instance;
+      }
+      this.instance = new ProjectState();
+      return this.instance;
+    }
+  
+    addListener(listenerFn: Listener) {
+      this.listeners.push(listenerFn);
+    }
+  
+    addProject(title: string, description: string, numOfPeople: number) {
+      const newProject = new Project(
+        Math.random().toString(),
+        title,
+        description,
+        numOfPeople,
+        ProjectStatus.Active
+      );
+      this.projects.push(newProject);//push the latest project into the projects array
+      for (const listenerFn of this.listeners) {
+        listenerFn(this.projects.slice());//we use slice here so that we dont send the original array, if we send the original one, it becomes vulnerable i.e.; can be edited openly
+      }
+    }
+  }
+  
+  const projectState = ProjectState.getInstance();//creating an instance of projectstate so that we can call the method addProject, if we dont create an instance, we cant use the method as it is private
+  
+  // Validation interface
+  interface Validatable {
+    value: string | number;
+    required?: boolean;
+    minLength?: number;
     maxLength?: number;
-    min? : number;
-    max? : number;
-}
-
-//validate function
-function validate(validatableInput: Validatable){
+    min?: number;
+    max?: number;
+  }
+  
+  //validate function
+  function validate(validatableInput: Validatable) {
     let isValid = true;
-    if(validatableInput.required){ //check for required
-        isValid = isValid && validatableInput.value.toString().trim().length !== 0;
+    if (validatableInput.required) { //check for required
+      isValid = isValid && validatableInput.value.toString().trim().length !== 0;
     }
     //check for minlength
-    if(validatableInput.minLength !=null && typeof validatableInput.value === 'string'){
-        isValid = isValid && validatableInput.value.length >= validatableInput.minLength; 
+    if (validatableInput.minLength != null && typeof validatableInput.value === 'string') {
+      isValid = isValid && validatableInput.value.length >= validatableInput.minLength;
     }
     //check for maxlength
-    if(validatableInput.maxLength !=null && typeof validatableInput.value === 'string'){
-        isValid = isValid && validatableInput.value.length <= validatableInput.maxLength;
+    if (validatableInput.maxLength != null && typeof validatableInput.value === 'string') {
+      isValid = isValid && validatableInput.value.length <= validatableInput.maxLength;
     }
     //check for min
-    if(validatableInput.min != null && typeof validatableInput.value === 'number'){
-        isValid = isValid && validatableInput.value >= validatableInput.min;
+    if (validatableInput.min != null && typeof validatableInput.value === 'number') {
+      isValid = isValid && validatableInput.value >= validatableInput.min;
     }
     //check for max
-    if(validatableInput.max != null && typeof validatableInput.value === 'number'){
-        isValid = isValid && validatableInput.value <= validatableInput.max;
+    if (validatableInput.max != null && typeof validatableInput.value === 'number') {
+      isValid = isValid && validatableInput.value <= validatableInput.max;
     }
     return isValid;
-}
-
-//autobind decorator
-function autobind(_: any, _2: string, Descriptor: PropertyDescriptor){ //This '_' actually is, a hint for typescript and javascript that you are aware that you are not going to use these values,
+  }
+  
+  // autobind decorator
+  function autobind(_: any, _2: string, descriptor: PropertyDescriptor) {//This '_' actually is, a hint for typescript and javascript that you are aware that you are not going to use these values,
     // but you need to accept them because you need the argument they're after
-    const originalMethod = Descriptor.value;
+    const originalMethod = descriptor.value;
     const adjDescriptor: PropertyDescriptor = {
-        configurable: true,
-        get(){
-            const boundFn = originalMethod.bind(this);
-            return boundFn;
-        }
+      configurable: true,
+      get() {
+        const boundFn = originalMethod.bind(this);
+        return boundFn;
+      }
     };
     return adjDescriptor;
-}
-
-// ProjectList Class
-class ProjectList {
+  }
+  
+  // ProjectList Class
+  class ProjectList {
     templateElement: HTMLTemplateElement;
     hostElement: HTMLDivElement;
     element: HTMLElement;
+    assignedProjects: Project[];
   
     constructor(private type: 'active' | 'finished') {
       this.templateElement = document.getElementById(
         'project-list'
       )! as HTMLTemplateElement;
       this.hostElement = document.getElementById('app')! as HTMLDivElement;
+      this.assignedProjects = [];
   
       const importedNode = document.importNode(
         this.templateElement.content,
@@ -67,8 +126,25 @@ class ProjectList {
       );
       this.element = importedNode.firstElementChild as HTMLElement;
       this.element.id = `${this.type}-projects`;
+  
+      projectState.addListener((projects: Project[]) => {
+        this.assignedProjects = projects;
+        this.renderProjects();
+      });
+  
       this.attach();
       this.renderContent();
+    }
+  
+    private renderProjects() {
+      const listEl = document.getElementById(
+        `${this.type}-projects-list`
+      )! as HTMLUListElement;
+      for (const prjItem of this.assignedProjects) {
+        const listItem = document.createElement('li');
+        listItem.textContent = prjItem.title;
+        listEl.appendChild(listItem);
+      }
     }
   
     private renderContent() {
@@ -76,113 +152,119 @@ class ProjectList {
       this.element.querySelector('ul')!.id = listId;
       this.element.querySelector('h2')!.textContent =
         this.type.toUpperCase() + ' PROJECTS';
-      
     }
   
     private attach() {
       this.hostElement.insertAdjacentElement('beforeend', this.element);
     }
   }
+  
+  // ProjectInput Class
+  class ProjectInput {
+    templateElement: HTMLTemplateElement;
+    hostElement: HTMLDivElement;
+    element: HTMLFormElement;
+    titleInputElement: HTMLInputElement;
+    descriptionInputElement: HTMLInputElement;
+    peopleInputElement: HTMLInputElement;
+  
+    constructor() {
+      this.templateElement = document.getElementById(
+        'project-input'
+      )! as HTMLTemplateElement;
+      this.hostElement = document.getElementById('app')! as HTMLDivElement;
+  
+      const importedNode = document.importNode(this.templateElement.content,true);
+      //So this template element in the end, or to be precise not the element but dot content there. Meaning, it reads the content in between the tag u provide 
+      //Content is a property that exists on HTML template elements and it simply gives a reference to the content of a template. So to the HTML code between the template text.
 
-//project class
-class ProjectInput {
-    templateElement : HTMLTemplateElement;
-    hostElement : HTMLDivElement;
-    element : HTMLFormElement
-    titleInputElement : HTMLInputElement;
-    descriptionInputElement : HTMLInputElement;
-    peopleInputElement : HTMLInputElement; 
-   
-    constructor(){
-        this.templateElement = document.getElementById('project-input')! as HTMLTemplateElement;
-        this.hostElement = document.getElementById('app')! as HTMLDivElement;
-
-        const importedNode = document.importNode(this.templateElement.content, true) // importNode is a method provided on the global document object and to importNode you pass a pointer at your template element. 
-        //So this template element in the end, or to be precise not the element but dot content there. Meaning, it reads the content in between the tag u provide 
-        //Content is a property that exists on HTML template elements and it simply gives a reference to the content of a template. So to the HTML code between the template text.
-
-        this.element = importedNode.firstElementChild as HTMLFormElement;
-        this.element.id = 'user-input';
-
-        this.titleInputElement = this.element.querySelector("#title") as HTMLInputElement; 
-        this.descriptionInputElement = this.element.querySelector("#description") as HTMLInputElement;
-        this.peopleInputElement = this.element.querySelector("#people") as HTMLInputElement; 
-        this.configure();
-        this.attach();
+      this.element = importedNode.firstElementChild as HTMLFormElement;
+      this.element.id = 'user-input';
+  
+      this.titleInputElement = this.element.querySelector('#title') as HTMLInputElement;
+      this.descriptionInputElement = this.element.querySelector('#description') as HTMLInputElement;
+      this.peopleInputElement = this.element.querySelector('#people') as HTMLInputElement;
+      this.configure();
+      this.attach();
     }
-
-    private gatherInput():[string, string, number] | void{
-        const enteredTitle = this.titleInputElement.value;
-        const enteredDescription = this.descriptionInputElement.value;
-        const enteredPeople = this.peopleInputElement.value;
-
-        const titleValidatable : Validatable = {
-            value: enteredTitle,
-            required : true
-        }
-
-        const descriptionValidatable : Validatable = {
-            value: enteredDescription,
-            required : true,
-            minLength: 5
-        }
-
-        const peopleValidatable : Validatable = {
-            value: enteredPeople,
-            required : true,
-            min: 1,
-            max: 5
-        };
-
-        if(
-            !validate(titleValidatable)|| !validate(descriptionValidatable)|| !validate(peopleValidatable)
-        ){
-            alert('Invalid input, please try again' );  
-        }else{
-            return [enteredTitle ,enteredDescription, +enteredPeople]
-        }
+  
+    private gatherUserInput(): [string, string, number] | void {
+      const enteredTitle = this.titleInputElement.value;
+      const enteredDescription = this.descriptionInputElement.value;
+      const enteredPeople = this.peopleInputElement.value;
+  
+      const titleValidatable: Validatable = {
+        value: enteredTitle,
+        required: true
+      };
+      const descriptionValidatable: Validatable = {
+        value: enteredDescription,
+        required: true,
+        minLength: 5
+      };
+      const peopleValidatable: Validatable = {
+        value: +enteredPeople,
+        required: true,
+        min: 1,
+        max: 5
+      };
+  
+      if (
+        !validate(titleValidatable) ||
+        !validate(descriptionValidatable) ||
+        !validate(peopleValidatable)
+      ) {
+        alert('Invalid input, please try again!');
+        return;
+      } else {
+        return [enteredTitle, enteredDescription, +enteredPeople];
+      }
     }
-
-    private clearInputs(){
-        this.titleInputElement.value = '';
-        this.descriptionInputElement.value = '';
-        this.peopleInputElement.value = '';
+  
+    private clearInputs() {
+      this.titleInputElement.value = '';
+      this.descriptionInputElement.value = '';
+      this.peopleInputElement.value = '';
     }
-
-    private attach(){ //this method means that we insert "this.element" which is actlly the imported node adjacent to the hostelement (div)
-        this.hostElement.insertAdjacentElement('afterbegin', this.element)
-    }
-    
+  
     @autobind
-    private submitHandler(event: Event){
-        event.preventDefault();
-        const userInput = this.gatherInput(); //as there is no concept of tuples in javascript, we use array method
-        if(Array.isArray(userInput)){
-            const [title, desc, people] = userInput;
-            console.log(title, desc, people);
-            this.clearInputs();
-        }
+    private submitHandler(event: Event) {
+      event.preventDefault();
+      const userInput = this.gatherUserInput();//as there is no concept of tuples in javascript, we use array method
+      if (Array.isArray(userInput)) {
+        const [title, desc, people] = userInput;
+        projectState.addProject(title, desc, people);//calling this adds the inputs as the new project
+        this.clearInputs();
+      }
     }
-
-    private configure(){
-        this.element.addEventListener('submit', this.submitHandler) //"submit" works here coz this.element is a HTMLFormElement
-        //here the first argument we can pass to bind then is actually what the 'this' keyword will refer to inside of the to be executed function i.e.; submitHandler
+  
+    private configure() {
+      this.element.addEventListener('submit', this.submitHandler);//"submit" works here coz this.element is a HTMLFormElement
+      //here the first argument we can pass to bind then is actually what the 'this' keyword will refer to inside of the to be executed function i.e.; submitHandler
     }
-}
-
-const prjInput = new ProjectInput();
-const activePrjList = new ProjectList('active');
-const finishedPrjList = new ProjectList('finished');
-
-//So, what's happening in here is, to sum up all the process, 
+  
+    private attach() {//this method means that we insert "this.element" which is actlly the imported node adjacent to the hostelement (div)
+      this.hostElement.insertAdjacentElement('afterbegin', this.element);
+    }
+  }
+  
+  const prjInput = new ProjectInput();
+  const activePrjList = new ProjectList('active');
+  const finishedPrjList = new ProjectList('finished');
+  
+  //So, what's happening in here is, to sum up all the process, 
 /*1) First, We created a form and got access of the form elements in the constructor by using queryselectors and all
-    then we use attach and configure methods, attach, tales the code between the app part and considers it as one code part
-    initially, nothin appears on the screen, but from the html code that's written, we extract this as hostELement in constructor and call
-    it in the div(with id as app), we use attach method for it, using configure method to attach an eventlistener, We also added an autobind decorator*/
+  then we use attach and configure methods, attach, tales the code between the app part and considers it as one code part
+  initially, nothin appears on the screen, but from the html code that's written, we extract this as hostELement in constructor and call
+  it in the div(with id as app), we use attach method for it, using configure method to attach an eventlistener, We also added an autobind decorator*/
 /*2) then, we created a method submit handler to handle the submit button, it takes input from gatherinput method
-     in gatherinput, we get access to the values of title, description, people inputs and kept some validation methods using function Validate which follows interface Validatable
-     in gatherinput, we follow those validations and if all of them are true, then we print it in console
-     it is printed by submithandler method which takes them as an array instead of tuple as we dont have them in javascript*/    
+   in gatherinput, we get access to the values of title, description, people inputs and kept some validation methods using function Validate which follows interface Validatable
+   in gatherinput, we follow those validations and if all of them are true, then we print it in console
+   it is printed by submithandler method which takes them as an array instead of tuple as we dont have them in javascript*/    
 /*3) Now, to deal with form class, we created(replicated ProjectInput class) a new class namely ProjectList, similar to before, we take the template which has id project-list
-     and use it, keeping the same host element, then we use rendercontent method inwhich we set the id values of lists depending on they are active list/ finished list
-     we also set the heading of it*/     
+   and use it, keeping the same host element, then we use rendercontent method inwhich we set the id values of lists depending on they are active list/ finished list
+   we also set the heading of it*/ 
+/*4) here, we build a class which manages the state of our application, a class that manages our projects, or whichever state we might need to manage in the application, 
+   which also allows us to then set up listeners in the different parts of the app that are interested. we created a new class named projectState, then we create listeners, and addlistener method in it
+   we also have an addProject method which adds inputs here, then in projectlist class, we created renderprojects and rendercontent method */
+/*5) here, we created a dedicated class for the project and then we added an extra feature namely project status and an enum for that and then replaced any[] types of projects array to their respective types*/
