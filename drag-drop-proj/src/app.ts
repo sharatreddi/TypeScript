@@ -15,18 +15,28 @@ enum ProjectStatus {
   }
   
   // Project State Management
-  type Listener = (items: Project[]) => void;
-  
-  //class ProjectState
-  class ProjectState {
-    private listeners: Listener[] = [];//It's an array of function references. The idea is that whenever something changes, like here when we add a new project, we call all listener functions. 
+  type Listener<T> = (items: T[]) => void;
+
+  class State<T> {
+    protected listeners: Listener<T>[] = [];//It's an array of function references. The idea is that whenever something changes, like here when we add a new project, we call all listener functions. 
     //So we loop through all listeners, of this listener, so through all listener functions, and then since these are function references, we can execute this as a function. And to that function, we pass the thing that's relevant for it, based on the state we're managing,
     //which is in this case, in this class of course, is our projects list. This is the state this class is responsible for.
+
+    addListener(listenerFn: Listener<T>) {
+      this.listeners.push(listenerFn);
+    }
+  }
+  
+  //class ProjectState
+  class ProjectState extends State<Project>{
+    
     private projects: Project[] = [];
     private static instance: ProjectState;//this & priv constructor & getinstance below ensures that there'll be only one instance created of this class 
     // i.e.; singleton class
   
-    private constructor() {}
+    private constructor() {
+      super();
+    }
   
     static getInstance() {
       if (this.instance) {
@@ -34,10 +44,6 @@ enum ProjectStatus {
       }
       this.instance = new ProjectState();
       return this.instance;
-    }
-  
-    addListener(listenerFn: Listener) {
-      this.listeners.push(listenerFn);
     }
   
     addProject(title: string, description: string, numOfPeople: number) {
@@ -105,89 +111,111 @@ enum ProjectStatus {
     };
     return adjDescriptor;
   }
-  
-  // ProjectList Class
-  class ProjectList {
+
+  //component class which is used for inheritance
+  abstract class Component <T extends HTMLElement,U extends HTMLElement>{ //we're making this class as abstract becoz, we want nobody to instantiate this class directly but it shld always be used for inheritance
     templateElement: HTMLTemplateElement;
-    hostElement: HTMLDivElement;
-    element: HTMLElement;
-    assignedProjects: Project[];
-  
-    constructor(private type: 'active' | 'finished') {
+    hostElement: T;
+    element: U;
+    
+    constructor (templateId : string, hostElementId: string, insertAtStart: boolean ,newElementId?: string){
       this.templateElement = document.getElementById(
-        'project-list'
-      )! as HTMLTemplateElement;
-      this.hostElement = document.getElementById('app')! as HTMLDivElement;
-      this.assignedProjects = [];
-  
-      const importedNode = document.importNode(
+              templateId
+            )! as HTMLTemplateElement;
+            this.hostElement = document.getElementById(hostElementId)! as T;
+        
+
+    const importedNode = document.importNode(      //So this template element in the end, or to be precise not the element but dot content there. Meaning, it reads the content in between the tag u provide 
+    //Content is a property that exists on HTML template elements and it simply gives a reference to the content of a template. So to the HTML code between the template text.
+
         this.templateElement.content,
         true
       );
-      this.element = importedNode.firstElementChild as HTMLElement;
-      this.element.id = `${this.type}-projects`;
+      this.element = importedNode.firstElementChild as U;
+      if(newElementId){
+      this.element.id = newElementId;
+      }
+      this.attach(insertAtStart);
+  }
+   
+  private attach(insertAtBeginning: Boolean) {//this method means that we insert "this.element" which is actlly the imported node adjacent to the hostelement (div)
+        this.hostElement.insertAdjacentElement(insertAtBeginning ? 'afterbegin' : 'beforeend', this.element);
+      }
+  abstract configure(): void;
+  abstract renderContent(): void; //we include these 2 methods coz they're kinda necessary for every class we inherit from this
+
+
+}
+  // ProjectList Class
+  class ProjectList extends Component<HTMLDivElement, HTMLElement>{
+    assignedProjects: Project[];
   
-      projectState.addListener((projects: Project[]) => {
-        this.assignedProjects = projects;
-        this.renderProjects();
-      });
+    constructor(private type: 'active' | 'finished') {
+      super('project-list', 'app', false, `${type}-projects`)
+      
+      this.assignedProjects = [];
   
-      this.attach();
+      this.configure()
       this.renderContent();
     }
   
-    private renderProjects() {
-      const listEl = document.getElementById(
-        `${this.type}-projects-list`
-      )! as HTMLUListElement;
-      for (const prjItem of this.assignedProjects) {
-        const listItem = document.createElement('li');
-        listItem.textContent = prjItem.title;
-        listEl.appendChild(listItem);
-      }
+    configure(){
+      projectState.addListener((projects: Project[]) => {
+        const relevantProjects = projects.filter(prj => { //here, we filter the projects on the basis of their type i.e.; active or finished by this function
+        if(this.type === 'active')
+            {
+                return prj.status === ProjectStatus.Active;
+            }
+                return prj.status === ProjectStatus.Finished;
+        });
+        this.assignedProjects = relevantProjects;
+        this.renderProjects();
+      });
     }
-  
-    private renderContent() {
+
+    renderContent() {
       const listId = `${this.type}-projects-list`;
       this.element.querySelector('ul')!.id = listId;
       this.element.querySelector('h2')!.textContent =
         this.type.toUpperCase() + ' PROJECTS';
     }
-  
-    private attach() {
-      this.hostElement.insertAdjacentElement('beforeend', this.element);
-    }
+
+    private renderProjects() {
+      const listEl = document.getElementById(
+        `${this.type}-projects-list`
+      )! as HTMLUListElement;
+      listEl.innerHTML = ''; //here, we simply take our list element and clear all its content by setting inner HTML to an empty string, 
+      //which means we get rid of all list items and then re render. That means that whenever we add a new project, we re render all projects
+      for (const prjItem of this.assignedProjects) {
+        const listItem = document.createElement('li');
+        listItem.textContent = prjItem.title;
+        listEl.appendChild(listItem);
+      }
+    }  
   }
   
   // ProjectInput Class
-  class ProjectInput {
-    templateElement: HTMLTemplateElement;
-    hostElement: HTMLDivElement;
-    element: HTMLFormElement;
+  class ProjectInput extends Component<HTMLDivElement, HTMLFormElement>{
+    
     titleInputElement: HTMLInputElement;
     descriptionInputElement: HTMLInputElement;
     peopleInputElement: HTMLInputElement;
   
     constructor() {
-      this.templateElement = document.getElementById(
-        'project-input'
-      )! as HTMLTemplateElement;
-      this.hostElement = document.getElementById('app')! as HTMLDivElement;
-  
-      const importedNode = document.importNode(this.templateElement.content,true);
-      //So this template element in the end, or to be precise not the element but dot content there. Meaning, it reads the content in between the tag u provide 
-      //Content is a property that exists on HTML template elements and it simply gives a reference to the content of a template. So to the HTML code between the template text.
-
-      this.element = importedNode.firstElementChild as HTMLFormElement;
-      this.element.id = 'user-input';
-  
+      super('project-input', 'app', true, 'user-input')
       this.titleInputElement = this.element.querySelector('#title') as HTMLInputElement;
       this.descriptionInputElement = this.element.querySelector('#description') as HTMLInputElement;
       this.peopleInputElement = this.element.querySelector('#people') as HTMLInputElement;
       this.configure();
-      this.attach();
     }
   
+    configure() {
+      this.element.addEventListener('submit', this.submitHandler);//"submit" works here coz this.element is a HTMLFormElement
+      //here the first argument we can pass to bind then is actually what the 'this' keyword will refer to inside of the to be executed function i.e.; submitHandler
+    }
+
+    renderContent(){}
+
     private gatherUserInput(): [string, string, number] | void {
       const enteredTitle = this.titleInputElement.value;
       const enteredDescription = this.descriptionInputElement.value;
@@ -236,16 +264,7 @@ enum ProjectStatus {
         projectState.addProject(title, desc, people);//calling this adds the inputs as the new project
         this.clearInputs();
       }
-    }
-  
-    private configure() {
-      this.element.addEventListener('submit', this.submitHandler);//"submit" works here coz this.element is a HTMLFormElement
-      //here the first argument we can pass to bind then is actually what the 'this' keyword will refer to inside of the to be executed function i.e.; submitHandler
-    }
-  
-    private attach() {//this method means that we insert "this.element" which is actlly the imported node adjacent to the hostelement (div)
-      this.hostElement.insertAdjacentElement('afterbegin', this.element);
-    }
+    } 
   }
   
   const prjInput = new ProjectInput();
@@ -268,3 +287,8 @@ enum ProjectStatus {
    which also allows us to then set up listeners in the different parts of the app that are interested. we created a new class named projectState, then we create listeners, and addlistener method in it
    we also have an addProject method which adds inputs here, then in projectlist class, we created renderprojects and rendercontent method */
 /*5) here, we created a dedicated class for the project and then we added an extra feature namely project status and an enum for that and then replaced any[] types of projects array to their respective types*/
+/*6) Here, we first filter the projects that we add on the basis of their type i.e.; active/finished, for that, we use an inbuilt function called .filter(), 
+   we use this in the constructor of projectList class in the addlistener method, and then to resolve the issue of a single project title rendering again when we run it,we clear the content of it in renderprojects method
+   by making its innerhtml as null*/
+/*7) Here, we created two classes, namely Component and State, we used them as base classes and other classes inherits from them, we adjusted projectList, projectInput and projectState classes according to the inheritance rules 
+   Adding inheritance and generic types r the main motto*/   
