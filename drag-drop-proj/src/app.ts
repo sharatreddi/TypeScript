@@ -151,6 +151,14 @@ enum ProjectStatus {
 class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
   private project: Project;
 
+  get persons(){ //this is a getter to customize the statement of no of persons assigned to the proj 
+    if(this.project.people === 1){
+      return "1 person";
+    } else {
+      return `${this.project.people} persons`;
+    } 
+  }
+
   constructor(hostId: string, project: Project) {
     super('single-project', hostId, false, project.id);
     this.project = project;
@@ -165,7 +173,7 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
     this.element.querySelector('h2')!.textContent = this.project.title;
     this.element.querySelector(
       'h3'
-    )!.textContent = this.project.people.toString();
+    )!.textContent = this.persons + ' assigned';
     this.element.querySelector('p')!.textContent = this.project.description;
   }
 }
@@ -315,3 +323,4 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
 /*7) Here, we created two classes, namely Component and State, we used them as base classes and other classes inherits from them, we adjusted projectList, projectInput and projectState classes according to the inheritance rules 
    Adding inheritance and generic types r the main motto*/   
 /*8) Here, we added a new class called projectItem, it is coz for each prj item we create, we use a class and repeat it, like, inheritance, we adjusted the rendercontent method in projectList according to it */
+/*9) Here, we added a getter which varies the statement that is produced on no of persons attached to the project, this getter is included in projectItem class*/
