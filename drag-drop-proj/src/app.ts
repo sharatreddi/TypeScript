@@ -68,6 +68,18 @@ enum ProjectStatus {
             ProjectStatus.Active
           );
           this.projects.push(newProject);//push the latest project into the projects array
+          this.updateListeners();
+        }
+
+        moveProject(projectId: string, newStatus: ProjectStatus) { //this is to basically shift the status of the project, to move a project from current status to another i.e.; dragging
+          const project = this.projects.find(prj => prj.id === projectId);
+          if (project && project.status !== newStatus) {
+            project.status = newStatus;
+            this.updateListeners();
+          }
+        }
+      
+        private updateListeners() {
           for (const listenerFn of this.listeners) {
             listenerFn(this.projects.slice());//we use slice here so that we dont send the original array, if we send the original one, it becomes vulnerable i.e.; can be edited openly
           }
@@ -182,7 +194,8 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
 
       @autobind
       dragStartHandler(event: DragEvent){
-        console.log(event);
+        event.dataTransfer!.setData('text/plain', this.project.id);
+        event.dataTransfer!.effectAllowed = 'move';
       }
       dragEndHandler(_: DragEvent) {
         console.log('DragEnd');
@@ -201,7 +214,7 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
 }
 
   // ProjectList Class
-  class ProjectList extends Component<HTMLDivElement, HTMLElement>{
+  class ProjectList extends Component<HTMLDivElement, HTMLElement> implements DragTarget{
         assignedProjects: Project[];
       
         constructor(private type: 'active' | 'finished') {
@@ -212,8 +225,36 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
           this.configure()
           this.renderContent();
         }
+
+        @autobind
+        dragOverHandler(event: DragEvent) {
+        if(event.dataTransfer && event.dataTransfer.types[0] === 'text/plain'){
+            event.preventDefault();
+            const listEl = this.element.querySelector('ul')!;
+            listEl.classList.add('droppable');
+        }
+        }
+
+        @autobind
+        dropHandler(event: DragEvent) {
+          const prjId = event.dataTransfer!.getData('text/plain');
+          projectState.moveProject(
+            prjId,
+            this.type === 'active' ? ProjectStatus.Active : ProjectStatus.Finished
+          );
+        }
+
+        @autobind
+        dragLeaveHandler(_: DragEvent) {
+          const listEl = this.element.querySelector('ul')!;
+          listEl.classList.remove('droppable');
+        }
       
         configure(){
+          this.element.addEventListener('dragover', this.dragOverHandler);
+          this.element.addEventListener('dragleave', this.dragLeaveHandler);
+          this.element.addEventListener('drop', this.dropHandler);
+
           projectState.addListener((projects: Project[]) => {
             const relevantProjects = projects.filter(prj => { //here, we filter the projects on the basis of their type i.e.; active or finished by this function
             if(this.type === 'active')
@@ -347,3 +388,7 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
 /*8) Here, we added a new class called projectItem, it is coz for each prj item we create, we use a class and repeat it, like, inheritance, we adjusted the rendercontent method in projectList according to it */
 /*9) Here, we added a getter which varies the statement that is produced on no of persons attached to the project, this getter is included in projectItem class*/
 /*10)We added two interfaces namely Draggable and DragTarget to enable the dragging between finished and active projects, we implemented draggable in projectItem class*/
+/*11)Implemented dragTarget interface for ProjectList class and changed UI while dragging is carried on */
+/*12)Here, we added methods for the eventhandlers for drag, we added moveProject method in class ProjectState and made the updatelisteners as a seperate function */
+
+/* until here, its all abt how the app works and all, in the upcoming, after learning abt modules, will update so that the final code can be divided*/
