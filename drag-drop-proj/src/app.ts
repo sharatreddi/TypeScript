@@ -1,9 +1,22 @@
+//Drag nd drop interfaces
+interface Draggable {
+  dragStartHandler(event: DragEvent): void;
+  dragEndHandler(event: DragEvent): void;
+}
+
+interface DragTarget {
+  dragOverHandler(event: DragEvent): void; //basically signal the browser in java script that the thing you're dragging something over is a valid drag target.
+  dropHandler(event: DragEvent): void;//will handle the drop and then here we can update our data and UI for example
+  dragLeaveHandler(event: DragEvent): void;//if we're, for example, giving some visual feedback to the user when he or she drags something over the box for example, we change the background color well if no drop happens and instead it's canceled
+  //or the user moves the element away we can use the drag leave handler to revert our visual update.
+}
+
 // Project Type
 enum ProjectStatus {
     Active,
     Finished
   }
-  
+
   class Project {
     constructor(
       public id: string,
@@ -29,36 +42,36 @@ enum ProjectStatus {
   
   //class ProjectState
   class ProjectState extends State<Project>{
-    
-    private projects: Project[] = [];
-    private static instance: ProjectState;//this & priv constructor & getinstance below ensures that there'll be only one instance created of this class 
-    // i.e.; singleton class
-  
-    private constructor() {
-      super();
-    }
-  
-    static getInstance() {
-      if (this.instance) {
-        return this.instance;
-      }
-      this.instance = new ProjectState();
-      return this.instance;
-    }
-  
-    addProject(title: string, description: string, numOfPeople: number) {
-      const newProject = new Project(
-        Math.random().toString(),
-        title,
-        description,
-        numOfPeople,
-        ProjectStatus.Active
-      );
-      this.projects.push(newProject);//push the latest project into the projects array
-      for (const listenerFn of this.listeners) {
-        listenerFn(this.projects.slice());//we use slice here so that we dont send the original array, if we send the original one, it becomes vulnerable i.e.; can be edited openly
-      }
-    }
+        
+        private projects: Project[] = [];
+        private static instance: ProjectState;//this & priv constructor & getinstance below ensures that there'll be only one instance created of this class 
+        // i.e.; singleton class
+      
+        private constructor() {
+          super();
+        }
+      
+        static getInstance() {
+          if (this.instance) {
+            return this.instance;
+          }
+          this.instance = new ProjectState();
+          return this.instance;
+        }
+      
+        addProject(title: string, description: string, numOfPeople: number) {
+          const newProject = new Project(
+            Math.random().toString(),
+            title,
+            description,
+            numOfPeople,
+            ProjectStatus.Active
+          );
+          this.projects.push(newProject);//push the latest project into the projects array
+          for (const listenerFn of this.listeners) {
+            listenerFn(this.projects.slice());//we use slice here so that we dont send the original array, if we send the original one, it becomes vulnerable i.e.; can be edited openly
+          }
+        }
   }
   
   const projectState = ProjectState.getInstance();//creating an instance of projectstate so that we can call the method addProject, if we dont create an instance, we cant use the method as it is private
@@ -113,188 +126,197 @@ enum ProjectStatus {
   }
 
   //component class which is used for inheritance
-  abstract class Component <T extends HTMLElement,U extends HTMLElement>{ //we're making this class as abstract becoz, we want nobody to instantiate this class directly but it shld always be used for inheritance
-    templateElement: HTMLTemplateElement;
-    hostElement: T;
-    element: U;
-    
-    constructor (templateId : string, hostElementId: string, insertAtStart: boolean ,newElementId?: string){
-      this.templateElement = document.getElementById(
-              templateId
-            )! as HTMLTemplateElement;
-            this.hostElement = document.getElementById(hostElementId)! as T;
+abstract class Component <T extends HTMLElement,U extends HTMLElement>{ //we're making this class as abstract becoz, we want nobody to instantiate this class directly but it shld always be used for inheritance
+        templateElement: HTMLTemplateElement;
+        hostElement: T;
+        element: U;
         
+        constructor (templateId : string, hostElementId: string, insertAtStart: boolean ,newElementId?: string){
+          this.templateElement = document.getElementById(
+                  templateId
+                )! as HTMLTemplateElement;
+                this.hostElement = document.getElementById(hostElementId)! as T;
+            
 
-    const importedNode = document.importNode(      //So this template element in the end, or to be precise not the element but dot content there. Meaning, it reads the content in between the tag u provide 
-    //Content is a property that exists on HTML template elements and it simply gives a reference to the content of a template. So to the HTML code between the template text.
+        const importedNode = document.importNode(      //So this template element in the end, or to be precise not the element but dot content there. Meaning, it reads the content in between the tag u provide 
+        //Content is a property that exists on HTML template elements and it simply gives a reference to the content of a template. So to the HTML code between the template text.
 
-        this.templateElement.content,
-        true
-      );
-      this.element = importedNode.firstElementChild as U;
-      if(newElementId){
-      this.element.id = newElementId;
+            this.templateElement.content,
+            true
+          );
+          this.element = importedNode.firstElementChild as U;
+          if(newElementId){
+          this.element.id = newElementId;
+          }
+          this.attach(insertAtStart);
       }
-      this.attach(insertAtStart);
-  }
-   
-  private attach(insertAtBeginning: Boolean) {//this method means that we insert "this.element" which is actlly the imported node adjacent to the hostelement (div)
-        this.hostElement.insertAdjacentElement(insertAtBeginning ? 'afterbegin' : 'beforeend', this.element);
-      }
-  abstract configure(): void;
-  abstract renderContent(): void; //we include these 2 methods coz they're kinda necessary for every class we inherit from this
+      
+      private attach(insertAtBeginning: Boolean) {//this method means that we insert "this.element" which is actlly the imported node adjacent to the hostelement (div)
+            this.hostElement.insertAdjacentElement(insertAtBeginning ? 'afterbegin' : 'beforeend', this.element);
+          }
+      abstract configure(): void;
+      abstract renderContent(): void; //we include these 2 methods coz they're kinda necessary for every class we inherit from this
 
 
 }
 
 // ProjectItem Class
-class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
-  private project: Project;
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements Draggable {
+      private project: Project;
 
-  get persons(){ //this is a getter to customize the statement of no of persons assigned to the proj 
-    if(this.project.people === 1){
-      return "1 person";
-    } else {
-      return `${this.project.people} persons`;
-    } 
-  }
+      get persons(){ //this is a getter to customize the statement of no of persons assigned to the proj 
+        if(this.project.people === 1){
+          return "1 person";
+        } else {
+          return `${this.project.people} persons`;
+        } 
+      }
 
-  constructor(hostId: string, project: Project) {
-    super('single-project', hostId, false, project.id);
-    this.project = project;
+      constructor(hostId: string, project: Project) {
+        super('single-project', hostId, false, project.id);
+        this.project = project;
 
-    this.configure();
-    this.renderContent();
-  }
+        this.configure();
+        this.renderContent();
+      }
 
-  configure() {}
+      @autobind
+      dragStartHandler(event: DragEvent){
+        console.log(event);
+      }
+      dragEndHandler(_: DragEvent) {
+        console.log('DragEnd');
+      }
 
-  renderContent() {
-    this.element.querySelector('h2')!.textContent = this.project.title;
-    this.element.querySelector(
-      'h3'
-    )!.textContent = this.persons + ' assigned';
-    this.element.querySelector('p')!.textContent = this.project.description;
-  }
+      configure() {
+        this.element.addEventListener('dragstart', this.dragStartHandler);
+        this.element.addEventListener('dragend', this.dragEndHandler);
+      }
+
+      renderContent() {
+        this.element.querySelector('h2')!.textContent = this.project.title;
+        this.element.querySelector('h3')!.textContent = this.persons + ' assigned';
+        this.element.querySelector('p')!.textContent = this.project.description;
+      }
 }
 
   // ProjectList Class
   class ProjectList extends Component<HTMLDivElement, HTMLElement>{
-    assignedProjects: Project[];
-  
-    constructor(private type: 'active' | 'finished') {
-      super('project-list', 'app', false, `${type}-projects`)
+        assignedProjects: Project[];
       
-      this.assignedProjects = [];
-  
-      this.configure()
-      this.renderContent();
-    }
-  
-    configure(){
-      projectState.addListener((projects: Project[]) => {
-        const relevantProjects = projects.filter(prj => { //here, we filter the projects on the basis of their type i.e.; active or finished by this function
-        if(this.type === 'active')
-            {
-                return prj.status === ProjectStatus.Active;
-            }
-                return prj.status === ProjectStatus.Finished;
-        });
-        this.assignedProjects = relevantProjects;
-        this.renderProjects();
-      });
-    }
+        constructor(private type: 'active' | 'finished') {
+          super('project-list', 'app', false, `${type}-projects`)
+          
+          this.assignedProjects = [];
+      
+          this.configure()
+          this.renderContent();
+        }
+      
+        configure(){
+          projectState.addListener((projects: Project[]) => {
+            const relevantProjects = projects.filter(prj => { //here, we filter the projects on the basis of their type i.e.; active or finished by this function
+            if(this.type === 'active')
+                {
+                    return prj.status === ProjectStatus.Active;
+                }
+                    return prj.status === ProjectStatus.Finished;
+            });
+            this.assignedProjects = relevantProjects;
+            this.renderProjects();
+          });
+        }
 
-    renderContent() {
-      const listId = `${this.type}-projects-list`;
-      this.element.querySelector('ul')!.id = listId;
-      this.element.querySelector('h2')!.textContent =
-        this.type.toUpperCase() + ' PROJECTS';
-    }
+        renderContent() {
+          const listId = `${this.type}-projects-list`;
+          this.element.querySelector('ul')!.id = listId;
+          this.element.querySelector('h2')!.textContent =
+            this.type.toUpperCase() + ' PROJECTS';
+        }
 
-    private renderProjects() {
-      const listEl = document.getElementById(
-        `${this.type}-projects-list`
-      )! as HTMLUListElement;
-      listEl.innerHTML = ''; //here, we simply take our list element and clear all its content by setting inner HTML to an empty string, 
-      //which means we get rid of all list items and then re render. That means that whenever we add a new project, we re render all projects
-      for (const prjItem of this.assignedProjects) {
-        new ProjectItem(this.element.querySelector('ul')!.id, prjItem);
-      }
-    }  
+        private renderProjects() {
+          const listEl = document.getElementById(
+            `${this.type}-projects-list`
+          )! as HTMLUListElement;
+          listEl.innerHTML = ''; //here, we simply take our list element and clear all its content by setting inner HTML to an empty string, 
+          //which means we get rid of all list items and then re render. That means that whenever we add a new project, we re render all projects
+          for (const prjItem of this.assignedProjects) {
+            new ProjectItem(this.element.querySelector('ul')!.id, prjItem);
+          }
+        }  
   }
   
   // ProjectInput Class
   class ProjectInput extends Component<HTMLDivElement, HTMLFormElement>{
-    
-    titleInputElement: HTMLInputElement;
-    descriptionInputElement: HTMLInputElement;
-    peopleInputElement: HTMLInputElement;
-  
-    constructor() {
-      super('project-input', 'app', true, 'user-input')
-      this.titleInputElement = this.element.querySelector('#title') as HTMLInputElement;
-      this.descriptionInputElement = this.element.querySelector('#description') as HTMLInputElement;
-      this.peopleInputElement = this.element.querySelector('#people') as HTMLInputElement;
-      this.configure();
-    }
-  
-    configure() {
-      this.element.addEventListener('submit', this.submitHandler);//"submit" works here coz this.element is a HTMLFormElement
-      //here the first argument we can pass to bind then is actually what the 'this' keyword will refer to inside of the to be executed function i.e.; submitHandler
-    }
+        
+        titleInputElement: HTMLInputElement;
+        descriptionInputElement: HTMLInputElement;
+        peopleInputElement: HTMLInputElement;
+      
+        constructor() {
+          super('project-input', 'app', true, 'user-input')
+          this.titleInputElement = this.element.querySelector('#title') as HTMLInputElement;
+          this.descriptionInputElement = this.element.querySelector('#description') as HTMLInputElement;
+          this.peopleInputElement = this.element.querySelector('#people') as HTMLInputElement;
+          this.configure();
+        }
+      
+        configure() {
+          this.element.addEventListener('submit', this.submitHandler);//"submit" works here coz this.element is a HTMLFormElement
+          //here the first argument we can pass to bind then is actually what the 'this' keyword will refer to inside of the to be executed function i.e.; submitHandler
+        }
 
-    renderContent(){}
+        renderContent(){}
 
-    private gatherUserInput(): [string, string, number] | void {
-      const enteredTitle = this.titleInputElement.value;
-      const enteredDescription = this.descriptionInputElement.value;
-      const enteredPeople = this.peopleInputElement.value;
-  
-      const titleValidatable: Validatable = {
-        value: enteredTitle,
-        required: true
-      };
-      const descriptionValidatable: Validatable = {
-        value: enteredDescription,
-        required: true,
-        minLength: 5
-      };
-      const peopleValidatable: Validatable = {
-        value: +enteredPeople,
-        required: true,
-        min: 1,
-        max: 5
-      };
-  
-      if (
-        !validate(titleValidatable) ||
-        !validate(descriptionValidatable) ||
-        !validate(peopleValidatable)
-      ) {
-        alert('Invalid input, please try again!');
-        return;
-      } else {
-        return [enteredTitle, enteredDescription, +enteredPeople];
-      }
-    }
-  
-    private clearInputs() {
-      this.titleInputElement.value = '';
-      this.descriptionInputElement.value = '';
-      this.peopleInputElement.value = '';
-    }
-  
-    @autobind
-    private submitHandler(event: Event) {
-      event.preventDefault();
-      const userInput = this.gatherUserInput();//as there is no concept of tuples in javascript, we use array method
-      if (Array.isArray(userInput)) {
-        const [title, desc, people] = userInput;
-        projectState.addProject(title, desc, people);//calling this adds the inputs as the new project
-        this.clearInputs();
-      }
-    } 
+        private gatherUserInput(): [string, string, number] | void {
+          const enteredTitle = this.titleInputElement.value;
+          const enteredDescription = this.descriptionInputElement.value;
+          const enteredPeople = this.peopleInputElement.value;
+      
+          const titleValidatable: Validatable = {
+            value: enteredTitle,
+            required: true
+          };
+          const descriptionValidatable: Validatable = {
+            value: enteredDescription,
+            required: true,
+            minLength: 5
+          };
+          const peopleValidatable: Validatable = {
+            value: +enteredPeople,
+            required: true,
+            min: 1,
+            max: 5
+          };
+      
+          if (
+            !validate(titleValidatable) ||
+            !validate(descriptionValidatable) ||
+            !validate(peopleValidatable)
+          ) {
+            alert('Invalid input, please try again!');
+            return;
+          } else {
+            return [enteredTitle, enteredDescription, +enteredPeople];
+          }
+        }
+      
+        private clearInputs() {
+          this.titleInputElement.value = '';
+          this.descriptionInputElement.value = '';
+          this.peopleInputElement.value = '';
+        }
+      
+        @autobind
+        private submitHandler(event: Event) {
+          event.preventDefault();
+          const userInput = this.gatherUserInput();//as there is no concept of tuples in javascript, we use array method
+          if (Array.isArray(userInput)) {
+            const [title, desc, people] = userInput;
+            projectState.addProject(title, desc, people);//calling this adds the inputs as the new project
+            this.clearInputs();
+          }
+        } 
   }
   
   const prjInput = new ProjectInput();
@@ -324,3 +346,4 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
    Adding inheritance and generic types r the main motto*/   
 /*8) Here, we added a new class called projectItem, it is coz for each prj item we create, we use a class and repeat it, like, inheritance, we adjusted the rendercontent method in projectList according to it */
 /*9) Here, we added a getter which varies the statement that is produced on no of persons attached to the project, this getter is included in projectItem class*/
+/*10)We added two interfaces namely Draggable and DragTarget to enable the dragging between finished and active projects, we implemented draggable in projectItem class*/
