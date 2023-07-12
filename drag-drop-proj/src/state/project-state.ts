@@ -1,4 +1,4 @@
-namespace App {
+import { Project, ProjectStatus } from '../models/project.js';
   // Project State Management
   type Listener<T> = (items: T[]) => void;
 
@@ -59,4 +59,3 @@ namespace App {
   }
 
   export const projectState = ProjectState.getInstance(); //creating an instance of projectstate so that we can call the method addProject, if we dont create an instance, we cant use the method as it is private
-}

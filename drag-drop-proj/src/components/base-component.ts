@@ -1,6 +1,6 @@
-namespace App{
+
       //component class which is used for inheritance
- export abstract class Component <T extends HTMLElement,U extends HTMLElement>{ //we're making this class as abstract becoz, we want nobody to instantiate this class directly but it shld always be used for inheritance
+ export default abstract class Component <T extends HTMLElement,U extends HTMLElement>{ //we're making this class as abstract becoz, we want nobody to instantiate this class directly but it shld always be used for inheritance
     templateElement: HTMLTemplateElement;
     hostElement: T;
     element: U;
@@ -32,4 +32,3 @@ namespace App{
   abstract renderContent(): void; //we include these 2 methods coz they're kinda necessary for every class we inherit from this
 }
 
-}

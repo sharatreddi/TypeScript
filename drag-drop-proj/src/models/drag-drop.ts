@@ -1,4 +1,4 @@
-namespace App {
+
     //Drag nd drop interfaces
        export interface Draggable {
             dragStartHandler(event: DragEvent): void;
@@ -11,4 +11,3 @@ namespace App {
             dragLeaveHandler(event: DragEvent): void;//if we're, for example, giving some visual feedback to the user when he or she drags something over the box for example, we change the background color well if no drop happens and instead it's canceled
             //or the user moves the element away we can use the drag leave handler to revert our visual update.
         }
-}

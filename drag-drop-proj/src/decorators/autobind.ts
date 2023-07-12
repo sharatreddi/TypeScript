@@ -1,4 +1,4 @@
-namespace App {
+
   // autobind decorator
   export function autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
     //This '_' actually is, a hint for typescript and javascript that you are aware that you are not going to use these values,
@@ -13,4 +13,4 @@ namespace App {
     };
     return adjDescriptor;
   }
-}
+
