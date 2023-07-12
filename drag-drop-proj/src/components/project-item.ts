@@ -1,5 +1,7 @@
 /// <reference path="base-component.ts" />
-// we do this above import as this prjItem extends component
+/// <reference path="../decorators/autobind.ts" />
+/// <reference path="../models/project.ts" />
+/// <reference path="../models/drag-drop.ts" />
 
 namespace App{
     // ProjectItem Class
