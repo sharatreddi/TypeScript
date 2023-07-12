@@ -1,31 +1,9 @@
-//Drag nd drop interfaces
-interface Draggable {
-  dragStartHandler(event: DragEvent): void;
-  dragEndHandler(event: DragEvent): void;
-}
+/// <reference path="drag-drop-interfaces.ts" />
+/// <reference path="project-model.ts" />
 
-interface DragTarget {
-  dragOverHandler(event: DragEvent): void; //basically signal the browser in java script that the thing you're dragging something over is a valid drag target.
-  dropHandler(event: DragEvent): void;//will handle the drop and then here we can update our data and UI for example
-  dragLeaveHandler(event: DragEvent): void;//if we're, for example, giving some visual feedback to the user when he or she drags something over the box for example, we change the background color well if no drop happens and instead it's canceled
-  //or the user moves the element away we can use the drag leave handler to revert our visual update.
-}
+namespace App{
 
-// Project Type
-enum ProjectStatus {
-    Active,
-    Finished
-  }
 
-  class Project {
-    constructor(
-      public id: string,
-      public title: string,
-      public description: string,
-      public people: number,
-      public status: ProjectStatus
-    ) {}
-  }
   
   // Project State Management
   type Listener<T> = (items: T[]) => void;
@@ -360,35 +338,13 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
         } 
   }
   
-  const prjInput = new ProjectInput();
-  const activePrjList = new ProjectList('active');
-  const finishedPrjList = new ProjectList('finished');
+   new ProjectInput();
+   new ProjectList('active');
+   new ProjectList('finished');
+}
   
-  //So, what's happening in here is, to sum up all the process, 
-/*1) First, We created a form and got access of the form elements in the constructor by using queryselectors and all
-  then we use attach and configure methods, attach, tales the code between the app part and considers it as one code part
-  initially, nothin appears on the screen, but from the html code that's written, we extract this as hostELement in constructor and call
-  it in the div(with id as app), we use attach method for it, using configure method to attach an eventlistener, We also added an autobind decorator*/
-/*2) then, we created a method submit handler to handle the submit button, it takes input from gatherinput method
-   in gatherinput, we get access to the values of title, description, people inputs and kept some validation methods using function Validate which follows interface Validatable
-   in gatherinput, we follow those validations and if all of them are true, then we print it in console
-   it is printed by submithandler method which takes them as an array instead of tuple as we dont have them in javascript*/    
-/*3) Now, to deal with form class, we created(replicated ProjectInput class) a new class namely ProjectList, similar to before, we take the template which has id project-list
-   and use it, keeping the same host element, then we use rendercontent method inwhich we set the id values of lists depending on they are active list/ finished list
-   we also set the heading of it*/ 
-/*4) here, we build a class which manages the state of our application, a class that manages our projects, or whichever state we might need to manage in the application, 
-   which also allows us to then set up listeners in the different parts of the app that are interested. we created a new class named projectState, then we create listeners, and addlistener method in it
-   we also have an addProject method which adds inputs here, then in projectlist class, we created renderprojects and rendercontent method */
-/*5) here, we created a dedicated class for the project and then we added an extra feature namely project status and an enum for that and then replaced any[] types of projects array to their respective types*/
-/*6) Here, we first filter the projects that we add on the basis of their type i.e.; active/finished, for that, we use an inbuilt function called .filter(), 
-   we use this in the constructor of projectList class in the addlistener method, and then to resolve the issue of a single project title rendering again when we run it,we clear the content of it in renderprojects method
-   by making its innerhtml as null*/
-/*7) Here, we created two classes, namely Component and State, we used them as base classes and other classes inherits from them, we adjusted projectList, projectInput and projectState classes according to the inheritance rules 
-   Adding inheritance and generic types r the main motto*/   
-/*8) Here, we added a new class called projectItem, it is coz for each prj item we create, we use a class and repeat it, like, inheritance, we adjusted the rendercontent method in projectList according to it */
-/*9) Here, we added a getter which varies the statement that is produced on no of persons attached to the project, this getter is included in projectItem class*/
-/*10)We added two interfaces namely Draggable and DragTarget to enable the dragging between finished and active projects, we implemented draggable in projectItem class*/
-/*11)Implemented dragTarget interface for ProjectList class and changed UI while dragging is carried on */
-/*12)Here, we added methods for the eventhandlers for drag, we added moveProject method in class ProjectState and made the updatelisteners as a seperate function */
-
-/* until here, its all abt how the app works and all, in the upcoming, after learning abt modules, will update so that the final code can be divided*/
+//here, we use namespaces, we create diff ts files and use namespaces in them (use the same names), and in tsconfig, we make a change at outfile, the references in the top 
+// are basically only for typescript, in order to enable them or transmit the connection, we do this following change in outfile
+/*the idea behind the out file is that you tell TypeScript that it should concatenate namespaces. So the references in the top, which it has during compilation
+into one single JavaScript file instead of compiling multiple JavaScript files. So here for out file we can say we want to have a file in the disc folder,
+which we named maybe bundle.js */
