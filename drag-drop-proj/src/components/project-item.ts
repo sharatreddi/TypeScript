@@ -1,7 +1,7 @@
-import { Draggable } from '../models/drag-drop.js';
-import { Project } from '../models/project.js';
-import Component from './base-component.js'; //can use this widout curly braces only if u had a default export
-import { autobind } from '../decorators/autobind.js';
+import { Draggable } from '../models/drag-drop';
+import { Project } from '../models/project';
+import Component from './base-component'; //can use this widout curly braces only if u had a default export
+import { autobind } from '../decorators/autobind';
 
 
     // ProjectItem Class

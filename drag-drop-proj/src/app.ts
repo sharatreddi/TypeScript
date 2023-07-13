@@ -1,11 +1,11 @@
-import { ProjectInput } from './components/project-input.js';
-import { ProjectList } from './components/project-list.js';
+import { ProjectInput } from './components/project-input';
+import { ProjectList } from './components/project-list';
 
    new ProjectInput();
    new ProjectList('active');
    new ProjectList('finished');
 
   
-//here, we use ES Modules, we create diff ts files and in tsconfig, we remove the change that we made in outfile while workin with namsepaces, we use imports on the top 
-// are basically only for typescript, in order to enable them or transmit the connection, we do this following change in outfile
-/*We divided them into many components, sub folders and made the necessary imports for each ts files */
+//here, we used webpack, it basically combines all our .ts/.js files and make it into a single file (bundle.js in this case)
+//we created two files, namely webpack.config.js and webpack.config.prod.js, and we write the code and customize it
+//we wrote it in such a way that it clears dist folder everytym we run it and compiles again freshly with updated codes 
